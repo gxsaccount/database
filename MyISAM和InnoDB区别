@@ -1,0 +1,2 @@
+1.MyISAM（CREATE TABLE xx{...,FULLTEXT(note_text)}ENGINE=MyISAM;）支持全文本搜索和InnoDB不支持。
+2.
