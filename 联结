@@ -14,7 +14,10 @@ ORDER BY vend_name,prod_name;
 SELECT 时，选择相应的列即可
 
 外部联结：之前的联结都是一个表中的行与另外一个表中的行相关联。但有时会需要包含没有关联行的那些行。
-（如客户下订单，还需要包括没有人下订单的商品）
+（如客户下订单，还需要包括没有人下订单的客户）
+SELECT customers.cus_id, orders.order_num
+FROM customers LEFT OUTER JION orders
+ON customers.cus_id=orders.cus_id
 
 
 
