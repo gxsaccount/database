@@ -1,0 +1,9 @@
+CREATE TABLE xxx{
+  ...,
+  FULLTEXT(note_text)
+} ENGINE=MyISAM
+
+SELECT note_text
+FROM productnotes
+WHERE Match(note_text) Against('rabbit') ;
+#Match(note_text)指示MySQL针对指定的列搜索， Against('rabbit')指定词rabbit作为搜索文本 ;
