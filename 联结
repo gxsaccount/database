@@ -1,0 +1,20 @@
+等值联结/内部联结：基于两个表之间的相等测试，很消耗资源。很多子查询（会返回多个表）可以用内部联结来做
+两种形式：
+SELECT vend_name,prod_name,prod_price
+FROM vendors AS v,products AS p
+WHERE v.vend_id = p.ven_id
+ORDER BY vend_name,prod_name;
+
+SELECT vend_name,prod_name,prod_price
+FROM vendors INNER JOIN products
+ON vendors.vend_id = products.ven_id
+ORDER BY vend_name,prod_name;
+
+自然联结：内部联结连接多个表，被联结的列会多次出现。自然联结排除多次出现，使每个列只返回一次
+SELECT 时，选择相应的列即可
+
+外部联结：之前的联结都是一个表中的行与另外一个表中的行相关联。但有时会需要包含没有关联行的那些行。
+（如客户下订单，还需要包括没有人下订单的商品）
+
+
+
