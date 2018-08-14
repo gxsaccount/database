@@ -1,0 +1,4 @@
+1.插入缓存/insert buffer
+2.二次写/double write
+3.自适应哈希索引/ahi
+4.预读/read ahead
