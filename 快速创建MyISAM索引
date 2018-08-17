@@ -1,0 +1,8 @@
+先禁用索引，载入数据，然后重新启用数据。
+ALTER TABLE test.load_data DISABLE KEYS;
+--load the data
+ALTER TABLE test.load_data ENABLE KEYS;
+
+这样将构建索引的工作延迟到数据完全载入以后。那时候已经可以通过排序来构建索引了。
+这样做会快很多，并且索引树的碎片更少，更紧凑。
+但是DISABLE KEYS只对非唯一索引有效。
