@@ -1,0 +1,51 @@
+定义：分区是将一大表，根据条件分割成若干个小表。
+作用：为了改善大型表以及具有各种访问模式的表的可伸缩性，可管理性和提高数据库效率。
+优点：
+      1，分区可以分在多个磁盘，存储更大一点
+      2，根据查找条件，也就是where后面的条件，查找只查找相应的分区不用全部查找了
+      3，进行大数据搜索时可以进行并行处理。涉及到例如SUM()和COUNT()这样聚合函数的查询，可以很容易地进行并行处理。
+      4，跨多个磁盘来分散数据查询，来获得更大的查询吞吐量
+      5，可以更快速的的删除/新增一些数据（直接删除/新增分区，如按年代划分分区）
+ 类型：RANGE分区：基于属于一个给定连续区间的列值，把多行分配给分区。这种模式允许将数据划分不同范围。例如可以将一个表通过年份划分成若干个分区。
+        create table t_range( 
+             id int(11), 
+             money int(11) unsigned not null, 
+             date datetime 
+          )partition by range(year(date))( 
+          partition p2007 values less than (2008), 
+          partition p2008 values less than (2009), 
+          partition p2009 values less than (2010) 
+          partition p2010 values less than maxvalue  #MAXVALUE 表示最大的可能的整数值
+          )；
+      LIST分区：类似于按RANGE分区，区别在于LIST分区是基于列值匹配一个离散值集合中的某个值来进行选择。 这种模式允许系统通过预定义的列表的值来对数据进行分割。
+        create table t_list( 
+          a int(11), 
+          b int(11) 
+          )(partition by list (b) 
+          partition p0 values in (1,3,5,7,9), 
+          partition p1 values in (2,4,6,8,0) 
+        );
+      HASH分区：这中模式允许通过对表的一个或多个列的Hash Key进行计算，最后通过这个Hash码不同数值对应的数据区域进行分区。
+        CREATE TABLE employees (
+            id INT NOT NULL,
+            fname VARCHAR(30),
+            lname VARCHAR(30),
+            hired DATE NOT NULL DEFAULT '1970-01-01',
+            separated DATE NOT NULL DEFAULT '9999-12-31',
+            job_code INT,
+            store_id INT
+        )
+        PARTITION BY HASH(store_id)
+        PARTITIONS 4;
+      KEY分区： 上面Hash模式的一种延伸，这里的Hash Key是MySQL系统产生的。
+        CREATE TABLE tk (
+            col1 INT NOT NULL,
+            col2 CHAR(5),
+            col3 DATE
+        )
+        PARTITION BY LINEAR KEY (col1)
+        PARTITIONS 3;
+子分区：子分区是分区表中每个分区的再次分割，子分区既可以使用HASH希分区，也可以使用KEY分区。这 也被称为复合分区（composite partitioning）。
+      1，如果一个分区中创建了子分区，其他分区也要有子分区
+      2，如果创建了了分区，每个分区中的子分区数必有相同
+      3，同一分区内的子分区，名字不相同，不同分区内的子分区名子可以相同
