@@ -1,0 +1,7 @@
+按照Mongodb默认的配置，￼WiredTiger的写操作会先写入Cache，并持久化到WAL(Write ahead log)，每60s或log文件达到2GB时会做一次Checkpoint，将当前的数据持
+久化，产生一个新的快照。
+Wiredtiger的Cache采用Btree的方式组织，每个Btree节点为一个page，root page是btree的根节点，internal page是btree的中间索引节点，leaf page是真正存储
+数据的叶子节点；btree的数据以page为单位按需从磁盘加载或写入磁盘。
+Wiredtiger采用Copy on write的方式管理修改操作（insert、update、delete），修改操作会先缓存在cache里，持久化时，修改操作不会在原来的leaf page上进行，
+而是写入新分配的page，每次checkpoint都会产生一个新的root page。
+Checkpoint时，wiredtiger需要将btree修改过的PAGE都进行持久化存储，每个btree对应磁盘上一个物理文件，btree的每个PAGE以文件里的extent形式
