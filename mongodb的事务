@@ -1,0 +1,78 @@
+很多nosql不支持事务
+mongodb支持一定的事务：
+MongoDB是有多种存储引擎的，不同的存储引擎在实现ACID的时候，使用不同的机制。
+mongoDB的默认引擎是WiredTiger引擎。
+
+WiredTiger引擎可以针对单个文档来保证ACID特性，但是当需要操作多个文档的时候无法保证ACID，也即无法提供事务支持。
+可以在应用层来获取类似事务的支持。（但推荐用关系数据库）
+
+减少ACID：
+原子性：实际上你希望所有的改变都完成
+一致性：系统短时间不一致没关系，只要最终一致就行
+隔离性：缺乏隔离性导致暂时的不一致。
+持久性：很重要，要支持。
+=>问题就简化为鲁棒性、可扩性、最终一致性
+1.字段同步：用户更换用户名，这个改变需要发给所有文档。
+  更新时加入一个syning文档的标识。
+  -在主文档中使用一个新文档如syning。给syning一个时间戳，记录用户文档的更新。
+  db.user.update({ _id: userId }, { $set:{ syncing: currentTime }, { rest of updates ... } })
+  -修改所有需要改变的文档。结束后移除标识：
+  db.user.update({ _id: userId }, {$unset: { syncing: 1 } })
+  过段时间后检查syncing是否有未完成的地方，索引应设为“sparse”，这样只有实际设置的文档需要被索引，索引量就会比较小。：
+  db.user.ensureIndex({ syncing: 1 }, { sparse: true })
+  当探测到“syncing”标志时，应用可以轻易修复文档。
+2.作业队列
+  用户文档包括一个朋友列表：{ _id: userId, friends: [ userId1,userId2, ... ]}
+  现在A和B决定成为朋友：你需要把B添加到A的列表，也需要把A添加到B的列表。
+  使用作业队列，作业队列也存储在MongoDB。{ _id: jobId, ts: timeStamp, state: "TODO", type: "ADD_FRIEND", details: { users: [ userA, userB ]} }
+  
+3.二阶段提交
+  参与者将操作成败通知协调者，协调者根据所有参与者的反馈情报决定各参与者是否要提交操作还是中止(回滚)操作。分为准备阶段(投票)，提交阶段(提交)
+  设有两个文档：
+  db.accounts.save({name: "A", balance: 1000, pendingTransactions: []})
+  db.accounts.save({name: "B", balance: 1000, pendingTransactions: []})
+  创建一个事务：A给B100元
+  
+  初始阶段
+  db.transactions.save({source: "A", destination: "B", value: 100, state: "initial"})
+  db.transactions.find()//验证
+  即将发生阶段
+  t = db.transactions.findOne({state: "initial"})//获取事务信息
+  db.transactions.update({_id: t._id}, {$set: {state: "pending"}})//更新事务为即将发生
+  db.transactions.find()//验证
+  发生阶段
+  db.accounts.update(
+	{ name: t.source, pendingTransactions: { $ne: t._id } },
+	{ $inc: { balance: -t.value }, $push: { pendingTransactions: t._id } }
+  )
+  db.accounts.update(
+    { name: t.destination, pendingTransactions: { $ne: t._id } },
+    { $inc: { balance: t.value }, $push: { pendingTransactions: t._id } }
+  )
+  db.accounts.find()//验证
+  已提交
+  db.transactions.update({_id: t._id}, {$set: {state: "committed"}})
+  db.transactions.find()
+  移除pending事务
+  db.accounts.update({name: t.source}, {$pull: {pendingTransactions: t._id}})
+  db.accounts.update({name: t.destination}, {$pull: {pendingTransactions: t._id}})
+  db.accounts.find()
+  db.transactions.update({_id: t._id}, {$set: {state: "done"}})
+  db.transactions.find()
+  
+  撤销事务：
+  发生阶段之前：
+  db.transactions.update({_id: t._id}, {$set: {state: "canceling"}})
+  第三部之后：
+  db.accounts.update({name: t.source, pendingTransactions: t._id}, {$inc: {balance: t.value}, $pull: {pendingTransactions: t._id}})
+  db.accounts.update({name: t.destination, pendingTransactions: t._id}, {$inc: {balance: -t.value}, $pull: {pendingTransactions: t._id}})
+  db.accounts.find()
+  
+4.日志校正
+  这种解决方案将事务写作简单的日志
+5.版本控制
+
+
+MongoDB的一致性
+外部一致性：针对分布式系统所说的CAP理论中的一致性，简单来说就是如何使得多台机器的副本保持一致，实际上Mongodb只能做到最终一致性。
+内部一致性：是针对ACID中的一致性。
