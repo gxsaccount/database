@@ -1,0 +1,9 @@
+
+select id ，count from table limit 20000,10
+此条语句explain 后：type为all，走了全表扫描，extra是using file sort，不是索引覆盖。
+
+原语句改为：
+select t.id ，t.count from table t 
+inner join (select id ，count from table where id>20000 limit 10) as t1 on t.id = t1.id
+
+利用覆盖索引和延迟优化优化limit
