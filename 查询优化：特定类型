@@ -1,1 +1,58 @@
+一、最大值和最小值优化
+对于min()和max()查询，MySQL的优化并不是很好，比方说：
+select min(actor_id) from actor where first_name = 'Jane';
+因为first_name上没有索引，所以这个会扫描全表。如果MySQL能按主键扫描，那么第一个满足条件的记录就是要找的最小指了，因为主键是严格按照大小顺序排列的，
+一个可以尝试的方法是不用min(),使用limit:
+select actor_id from actor use index(primary) where first_name = 'Jane' limit 1;
+但是这条SQL的本意就不明显了。
+
+
+二、在同一个表上查询和更新
+MySQL不允许对同一张表同时进行查询和更新，比方说
+update tab1 as outer_tab
+set cnt = (
+  select count(*) from tab1 as inner_tab
+  where inner_tab.type = outer_tab.type
+);
+可以使用生成表的形式绕过上面的限制，子查询会在update语句打开之前就完成。
+update tab1
+inner join(
+  select type,count(*) as cnt from tab1 group by type)
+as der using(type)
+set tab1.cnt = der.cnt;
+
+四、count()查询
+count()有两种非常不同的作用：它可以统计某个列值的数量，也可以统计行数，统计列值要求列值是非空的（不统计NULL）。
+如果括号从指定了列或者列的表达式，则统计的就是这个表达式有值的结果数。当MySQL确认括号中表达式不可能为空的时候，实际上就是统计行数。
+MyISAM的count()只有在没有任何where条件的时候才会很快。
+我们恰恰可以利用这一点来在特定条件下优化比方说：我们在一个有500W记录的表里执行语句
+#id从10000递增
+select count(*) from emp where id > 10005;
+和我们利用如下方法来比较时间上的差异
+select (select count(*) from emp) - count(*) from emp where id <= 10005;
+
+五、优化GROUP BY 和 DISTINCT
+如果需要对关联查询分组，并且是按照查找表中的某个列进行分组，那么通常采用查找表的标识列效率会比其他列更高。
+例如下面的查询，效果不会很好
+select actor.first_name,actor.last_name,count(*) from film_actor
+inner join actor using(actor_id)
+group by actor.first_name,actor.last_name;
+如果这样写效率会更高
+select actor.first_name,actor.last_name,count(*) from film_actor
+inner join actor using(actor_id)
+group by actor.id;
+如果没有通过order by子句显示的指定排序列，当查询使用group by子句的时候，结果会自动按照分组的字段进行排序，如果不关心排序，
+可以使用order by null避免排序，节省时间。
+
+六、优化LIMIT和分页
+如果偏移量很大的时候，这样的查询会很慢，前面的文章我们已经测试过了，也提供了一种解决的办法，那就是“延迟关联”。
+当然我们还可以记录上一页的id最大值，然后在查询下一页的时候用这个值来作为条件，但是这样只有能按下一页查找，不能直接跳转了。
+
+若需要多次下一页，一页20个记录，可以一次返回21个，若21存在显示下一页按钮。不存在就没有记录了。
+或者1次取1000缓存，少于1000页面可以显示所有页面。
+
+七、优化UNION
+Mysql总是通过创建并填充临时表的方式来执行union查询，除非确实需要服务器消除重复的行，否这一定要使用union all，
+这一点很重要。如果没有all，Mysql会给临时表加上distinct，这会导致整个脸时表的数据唯一行检查，代价很高。
+
 
