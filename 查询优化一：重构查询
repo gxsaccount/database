@@ -1,0 +1,25 @@
+1 一个复杂查询还是多个简单查询
+2 切分查询（一个大的操作分解为多个小的操作，让大任务的锁时间分散开来，降低对服务器的影响）
+    如删除旧数据，一次性删除改为，一次删除1W行数据：
+    DELETE FROM message WHERE created < DATE_SUB(NOW(),INTERVAL 3 MONTH);
+    
+    rows_affected = 0
+    do{
+      rows_affected = do_query("DELETE FROM message 　WHERE created < DATE_SUB(NOW(),INTERVAL 3 MONTH)) LIMIT 10000"}
+    }while rows_affected > 0
+3 分解关联查询（分解jion）
+    SELECT * FROM tag 
+        JOIN tag_post on tag_post.tag_id = tag.tag_id 
+        JOIN post ON tag_post.post_id = post.id 
+    WHERE tag.tag = 'mysql'
+    可以分解成下面的这些查询来代替：
+    SELECT * FROM tag where tag = 'mysql';
+    SELECT * FROM tag_post WHERE tagid=1234;
+    SELECT * FROM post WHERE post_id in (123,234,435,342);
+    优点：（1）让缓存的效率更高。（如若上面tag有缓存了，就可以跳过第一个查询）
+         （2）将查询拆分后，执行党查询可以减少锁的竞争。
+         （3）在应用层做关联，可以更容易对数据库进行拆分，更容易做到高新能和可扩展。
+         （4）查询本身下来也可能会有所提升。
+          (5) 可以减少冗余记录的查询。（数据库关联查询可能会重复查询）
+          (6) 这样做相当于在应用中实现了hash关联。
+    
