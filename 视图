@@ -1,0 +1,23 @@
+视图：
+视图中不存放任何数据，在使用SQL语句访问视图的时候，返回的数据时MySQL从其他表中生成的。
+不能对视图创建触发器，不能使用DROP TABLE命令删除视图。
+
+临时表：
+临时表与永久表相似，但临时表存储在 tempdb 中，当不再使用时会自动删除（如Session结束）。 
+
+视图的两种实现：
+如果可能，会尽可能使用合并算法。
+合并方法：
+select Code, Name from Country
+where Continent = ‘Oceania’ and Name = ‘Australia’;
+临时表方法：
+create temporary table TMP_Oceania_123 as
+select * from Country where Continent = ‘Oceania’;
+select Code, Name from TMP_Oceania_123where Name = ‘Australia’;
+如果视图中包含Group by, Distinct, 任何聚合函数，union，子查询等，只要无法在原表记录和视图记录中建立一一映射，MySQL都会使用临时表算法来实现。
+
+二者区别：
+空间分配：物理空间的分配不一样，视图不分配空间，临时表会分配空间
+虚实：视图是一条预编译的SQL语句，并不保存实际数据，而临时表是保存在tempdb中的实际的表。即视图是一个快照,是一个虚表，而临时表是客观存在的表类型对象。
+它们的结构一个是表、一个快照。可以把视图想象成联合表的快捷方式。
+
