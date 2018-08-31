@@ -1,5 +1,5 @@
-*全文搜索：
-  1.MyISAM（CREATE TABLE xx{...,FULLTEXT(note_text)}ENGINE=MyISAM;）支持全文本搜索和InnoDB不支持。
+全文搜索：
+  1.MyISAM（CREATE TABLE xx{...,FULLTEXT(note_text)}ENGINE=MyISAM;）支持全文本搜索和InnoDB不支持（系版本已经支持）。
 *事务支持
   2.MyISAM 不支持事务，InnoDB支持事务。
 *并发性：
@@ -14,7 +14,7 @@
 *压缩：
   8.写入就不会再修改的文件，myisam可以压缩
 使用场景：
-  myisam：非事务应用，只读类应用，空间类
+  myisam：非事务应用，只读类应用，空间类（新版本innodb已经支持）
   innodb：分为系统表空间，独立表空间（每个表分开）。
       系统表空间：无法简单的收缩文件大小，会有磁盘碎片（删除一些文件后，文件并不会减小）。会有io瓶颈。 
       独立表空间：独立表空间可以分别io。
