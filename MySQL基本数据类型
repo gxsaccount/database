@@ -6,7 +6,7 @@ INT或INTEGER	4 字节
 BIGINT	8 字节
 FLOAT	4 字节
 DOUBLE	8 字节
-DECIMAL 对DECIMAL(M,D) ，如果M>D，为M+2否则为D+2 
+DECIMAL 对DECIMAL(M,D) ，M字节(D+2 , 如果M < D) 
 以上均有有符号和无符号情况。
 
 字符串类型
