@@ -1,6 +1,11 @@
+全文搜索：
   1.MyISAM（CREATE TABLE xx{...,FULLTEXT(note_text)}ENGINE=MyISAM;）支持全文本搜索和InnoDB不支持。
+事务支持
   2.MyISAM 不支持事务，InnoDB支持事务。
+并发性：
   3.MyISAM 不支持行级锁，InnoDB支持行级锁。
   4.MyISAM 不支持MVCC，InnoDB支持MVCC。
+外键支持：
   5.MyISAM 不支持外键，InnoDB支持外键。
+索引区别：
   6.Innodb辅助索引的叶子节点存储的不是地址，而是主键值，MyISAM引擎下，B+树叶子节点中包含的是数据记录的地址（可以简单理解为“行号”）
