@@ -9,8 +9,6 @@
   5.MyISAM 不支持外键，InnoDB支持外键。
 索引区别：
   6.Innodb聚集索引的叶子节点存储的不是地址，而是主键值，MyISAM引擎下，B+树叶子节点中包含的是数据记录的地址（可以简单理解为“行号”）
-修复：
-  7.myIsam：check和repair命令
 *压缩：
   8.写入就不会再修改的文件，myisam可以压缩
 使用场景：
@@ -18,3 +16,7 @@
   innodb：分为系统表空间，独立表空间（每个表分开）。
       系统表空间：无法简单的收缩文件大小，会有磁盘碎片（删除一些文件后，文件并不会减小）。会有io瓶颈。 
       独立表空间：独立表空间可以分别io。
+备份：
+   innodb有undo log和redo log。
+   为了满足事务的持久性，防止buffer pool数据丢失，innodb引入了redo log。
+   为了满足事务的原子性，innodb引入了undo log。ROLLBACK时使用。
