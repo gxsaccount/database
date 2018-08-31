@@ -1,18 +1,20 @@
-全文搜索：
+*全文搜索：
   1.MyISAM（CREATE TABLE xx{...,FULLTEXT(note_text)}ENGINE=MyISAM;）支持全文本搜索和InnoDB不支持。
-事务支持
+*事务支持
   2.MyISAM 不支持事务，InnoDB支持事务。
-并发性：
+*并发性：
   3.MyISAM 不支持行级锁，InnoDB支持行级锁。
   4.MyISAM 不支持MVCC，InnoDB支持MVCC。
-外键支持：
+*外键支持：
   5.MyISAM 不支持外键，InnoDB支持外键。
 索引区别：
-  6.Innodb辅助索引的叶子节点存储的不是地址，而是主键值，MyISAM引擎下，B+树叶子节点中包含的是数据记录的地址（可以简单理解为“行号”）
+  6.Innodb聚集索引的叶子节点存储的不是地址，而是主键值，MyISAM引擎下，B+树叶子节点中包含的是数据记录的地址（可以简单理解为“行号”）
 修复：
-  7.myIsam：check和repair
-压缩：
-  8.写入就不会再修改，muisam可以压缩
+  7.myIsam：check和repair命令
+*压缩：
+  8.写入就不会再修改的文件，myisam可以压缩
 使用场景：
   myisam：非事务应用，只读类应用，空间类
-  
+  innodb：分为系统表空间，独立表空间（每个表分开）。
+      系统表空间：无法简单的收缩文件大小，会有磁盘碎片（删除一些文件后，文件并不会减小）。会有io瓶颈。 
+      独立表空间：独立表空间可以分别io。
