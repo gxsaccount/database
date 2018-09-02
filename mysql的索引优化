@@ -32,3 +32,5 @@
     索引可以减少锁定行数（无索引升级为表锁，行级锁是对主键索引加锁）
     索引可以加快处理速度，同时也加快了锁得释放
     
+8.有时可以冗余添加索引，联合索引太大时，可以这样考虑。pt-duplicate-key=checker 查询
+9.更新索引统计信息和减少索引碎片 分别analyze table table_name 和 optimize table table_name(会锁表)
