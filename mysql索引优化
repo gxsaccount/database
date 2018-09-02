@@ -1,0 +1,34 @@
+1.索引列上不能使用表达式或函数
+    select ... from product
+    where to_days(out_date) - to_days(current_date) <=30
+    索引列out_date被to_days函数包裹，不能使用索引
+    select ... from product
+    where out_date <= date_add(current_date,interval 30 days)
+    out_date没有被函数包裹，可以继续使用
+2.前缀索引（text与字符串索引）
+    create index index_name on table(col_name(n))
+    索引的选择性是不重复的索引值和表的记录数比值，选择前缀时，应该考虑前缀大小的选择性
+3.联合索引
+    索引的顺序：频繁的左端，选择性高的左端，字段小的左端
+4.覆盖索引
+    索引包含所有需要的全部索引，包括select，where，order by，和group by。explain中有using index
+    优点：
+    可以优化缓存，减少磁盘io操作（因为索引一般远小于行，缓存可以保存更多索引）
+    可以减少随机IO，变随机IO为顺序IO操作。（因为b树索引按照键值存储？？？）
+    可以避免innodb的主键索引的二次查询（）
+    失效情况：
+    存储引擎不支持
+    查询了太多列（索引太大，不能优化缓存，几乎没作用）
+    使用了双%%号的like查询（索引都不能用）
+5.使用索引来优化排序（即按照索引顺序扫描数据）
+    使用条件：
+    索引的列顺序和orderby一致
+    索引的列方向（升，降序）和orderby一致
+    orderby中的字段全部在关联表中的第一张表中
+6.模拟Hash索引优化查询（对不支持hash索引的存储引擎，精确查找某记录）
+    针对要请确查询的列col1，添加一列对应的hash，where hash = hash（值） and col1=值
+    col1=值是防止hash冲突。
+7.利用索引优化锁
+    索引可以减少锁定行数
+    索引可以加快处理速度，同时也加快了锁得释放
+    
